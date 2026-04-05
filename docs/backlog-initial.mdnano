@@ -1,8 +1,0 @@
-# Backlog produit – Application Achat
-
-| ID | User Story | Priorité |
-|----|------------|----------|
-| US1 | En tant qu'équipe, je veux build du projet avec Maven | Haute |
-| US2 | En tant qu'équipe, je veux un pipeline Jenkins de base | Haute |
-| US3 | En tant que dev, je veux exécuter les tests unitaires | Moyenne |
-| US4 | En tant qu'équipe, je veux dockeriser l'application | Moyenne |

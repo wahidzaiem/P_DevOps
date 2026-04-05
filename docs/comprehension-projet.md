@@ -1,21 +1,27 @@
-# Compréhension – Application Achat
+# Document de compréhension – Projet Achat
 
-## Fonctionnalités existantes
-- Consultation catalogue produits
-- Ajout au panier
-- Validation commande
+## Stack technique
+- Spring Boot 2.7.18 / Java 17
+- Maven / MySQL 8.0.33
+- Spring Data JPA, Lombok, Swagger (Springfox 3.0)
 
-## Architecture technique
-- Spring Boot
-- Maven
-- Base H2 ou MySQL
+## Structure
+- GroupId : `tn.esprit.rh`
+- ArtifactId : `achat`
+- Version : `1.0`
+- Type : API REST Spring Boot
 
 ## Limites identifiées
-- Pas de tests unitaires
-- Pas de conteneur Docker
-- Pas d’intégration continue
+| Catégorie | Limite |
+|-----------|--------|
+| Base de données | Dépendance MySQL externe |
+| Tests | Aucun test présent |
+| Qualité | Pas de Sonar ni couverture |
+| Sécurité | Aucune validation OWASP |
+| Conteneurisation | Pas de Dockerfile |
+| Configuration | Accès DB non externalisé |
 
-## Premières actions envisagées
-- Ajouter JUnit
-- Créer un Jenkinsfile simple
-- Dockeriser l’app
+## Exécution manuelle (état initial)
+```bash
+# Prérequis : Java 17, MySQL, Maven
+mvn spring-boot:run

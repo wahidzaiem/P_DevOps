@@ -1,71 +1,38 @@
-# Document de compréhension du projet – Achat
+# Backlog initial – Semaine 1 (Projet DevOps)
 
-## 1. Présentation générale
+## User stories
 
-Le projet **achat** est une application backend Java fournie dans le cadre du module DevOps. Elle servira de base à l'industrialisation, l'automatisation et la sécurisation via une chaîne CI/CD.
+**US-01**  
+En tant qu'équipe, je veux analyser l'application existante pour identifier ses limites.  
+Critères d'acceptation : Document d'analyse (architecture, fonctionnalités, limites)
 
-## 2. Technologie et stack technique
+**US-02**  
+En tant qu'équipe, je veux initialiser un dépôt Git structuré.  
+Critères d'acceptation : Dépôt créé, code importé, README initial
 
-| Composant | Technologie | Version |
-|-----------|-------------|---------|
-| Framework principal | Spring Boot | 2.7.18 |
-| Langage | Java | 17 |
-| Gestionnaire de dépendances | Maven | - |
-| Base de données | MySQL | 8.0.33 (driver) |
-| ORM | Spring Data JPA | - |
-| Documentation API | Swagger (Springfox) | 3.0.0 |
-| Réduction de code boilerplate | Lombok | 1.18.30 |
-| Tests | Spring Boot Starter Test | - |
+**US-03**  
+En tant qu'équipe, je veux définir une stratégie de branches.  
+Critères d'acceptation : Stratégie choisie et documentée (ex: Git Flow simplifié)
 
-## 3. Structure identifiée (via le POM)
-
-- **GroupId** : `tn.esprit.rh`
-- **ArtifactId** : `achat`
-- **Version actuelle** : `1.0`
-- **Type** : Application web Spring Boot
-
-### Dépendances principales et leur rôle
-
-| Dépendance | Rôle |
-|------------|------|
-| `spring-boot-starter-data-jpa` | Accès et persistance des données |
-| `spring-boot-starter-web` | Exposition d'API REST |
-| `mysql-connector-java` | Connexion à la base MySQL |
-| `lombok` | Générateur de getters/setters/constructeurs |
-| `spring-boot-starter-test` | Tests unitaires et d'intégration |
-| `springfox-boot-starter` + `swagger-ui` | Génération automatique de documentation API |
-
-## 4. Limites techniques et organisationnelles identifiées
-
-| Catégorie | Limite constatée |
-|-----------|------------------|
-| **Base de données** | Dépendance externe à MySQL, pas d'initialisation automatisée |
-| **Tests** | Aucun test présent dans le POM (à vérifier dans le code source) |
-| **Qualité** | Aucun plugin Sonar ou de couverture configuré |
-| **Sécurité** | Aucune dépendance liée à la sécurité (OWASP, validation entrées) |
-| **Documentation API** | Swagger présent mais configuration à vérifier |
-| **Conteneurisation** | Aucun Dockerfile ni configuration pour conteneur |
-| **Configuration** | Propriétés de connexion DB probablement en dur ou absentes |
-
-## 5. Prérequis pour exécution manuelle (état initial)
-
-- Java 17 installé
-- MySQL installé et en cours d'exécution
-- Base de données créée (nom à confirmer dans `application.properties`)
-- Maven installé
-- Commande : `mvn spring-boot:run`
-
-## 6. Pistes d'amélioration DevOps (pour les semaines suivantes)
-
-- Ajouter des tests unitaires avec JUnit
-- Configurer Sonar pour analyse qualité
-- Créer un Dockerfile
-- Externaliser les configurations sensibles
-- Ajouter un plugin de vérification des vulnérabilités sur les dépendances
-- Mettre en place un pipeline Jenkins
-
-## 7. Conclusion – état à l'issue de la semaine 1
-
-L'application est une API Spring Boot classique, sans industrialisation ni automatisation. Elle constitue un bon candidat pour appliquer l'ensemble des briques DevOps demandées (CI/CD, tests, qualité, conteneurisation, supervision, sécurité).
+**US-04**  
+En tant qu'équipe, je veux organiser le travail en Scrum.  
+Critères d'acceptation : Rôles attribués, tableau Scrum, backlog initial et sprint backlog semaine 1
 
 ---
+
+## Sprint backlog (Semaine 1)
+
+- Analyser l'application (architecture + limites)
+- Initialiser le dépôt Git et importer le code
+- Définir et documenter la stratégie de branches
+- Créer le tableau Scrum et attribuer les rôles
+- Rédiger le document de compréhension du projet
+
+---
+
+## Livrables attendus pour la Semaine 1
+
+- Composition de l'équipe + rôles
+- Backlog initial et tableau Scrum
+- Dépôt Git initialisé + stratégie de branches
+- Document court de compréhension du projet

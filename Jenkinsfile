@@ -41,7 +41,7 @@ pipeline {
         }
         
         // ========== QUALITY GATE ==========
-        sstage('Quality Gate') {
+        stage('Quality Gate') {
     steps {
         echo 'Vérification du Quality Gate (optionnelle)...'
         script {

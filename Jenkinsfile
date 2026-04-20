@@ -6,12 +6,7 @@ pipeline {
         jdk 'jdk17'
     }
     
-    // SECTION ENVIRONMENT MODIFIÉE - sans readMavenPom()
-    environment {
-        POM_GROUPID = 'tn.esprit.rh'     // Remplacez par votre groupId réel
-        POM_ARTIFACTID = 'achat'       // Remplacez par votre artifactId réel
-        POM_VERSION = '1.0'              // Remplacez par votre version
-    }
+    // Supprimez le bloc environment - on va le gérer autrement
     
     stages {
         stage('Checkout') {
@@ -35,6 +30,7 @@ pipeline {
             }
         }
         
+        // ========== ANALYSE SONARQUBE ==========
         stage('SonarQube Analysis') {
             steps {
                 echo 'Analyse de la qualité du code avec SonarQube...'
@@ -44,6 +40,7 @@ pipeline {
             }
         }
         
+        // ========== QUALITY GATE ==========
         stage('Quality Gate') {
             steps {
                 echo 'Vérification du Quality Gate SonarQube...'
@@ -60,26 +57,36 @@ pipeline {
             }
         }
         
+        // ========== PUBLICATION DANS NEXUS ==========
         stage('Publish to Nexus') {
             steps {
                 echo 'Publication de l\'artéfact dans Nexus...'
-                nexusArtifactUploader(
-                    nexusVersion: 'nexus3',
-                    protocol: 'http',
-                    nexusUrl: 'localhost:8081',
-                    groupId: "${POM_GROUPID}",
-                    version: "${POM_VERSION}",
-                    repository: 'my-app-releases',
-                    credentialsId: 'nexus-credentials',
-                    artifacts: [
-                        [
-                            artifactId: "${POM_ARTIFACTID}",
-                            classifier: '',
-                            file: "target/${POM_ARTIFACTID}-${POM_VERSION}.jar",
-                            type: 'jar'
+                
+                // Récupération des informations du pom.xml
+                script {
+                    def pom = readMavenPom file: 'pom.xml'
+                    def groupId = pom.groupId
+                    def artifactId = pom.artifactId
+                    def version = pom.version
+                    
+                    nexusArtifactUploader(
+                        nexusVersion: 'nexus3',
+                        protocol: 'http',
+                        nexusUrl: 'localhost:8081',
+                        groupId: groupId,
+                        version: version,
+                        repository: 'my-app-releases',
+                        credentialsId: 'nexus-credentials',
+                        artifacts: [
+                            [
+                                artifactId: artifactId,
+                                classifier: '',
+                                file: "target/${artifactId}-${version}.jar",
+                                type: 'jar'
+                            ]
                         ]
-                    ]
-                )
+                    )
+                }
             }
         }
         

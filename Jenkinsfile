@@ -46,7 +46,7 @@ pipeline {
         echo 'Vérification du Quality Gate (optionnelle)...'
         script {
             try {
-                timeout(time: 2, unit: 'MINUTES') {
+                timeout(time: 1, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: false  // false = ne pas échouer
                 }
             } catch (Exception e) {

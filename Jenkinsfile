@@ -6,11 +6,11 @@ pipeline {
         jdk 'jdk17'
     }
     
+    // SECTION ENVIRONMENT MODIFIÉE - sans readMavenPom()
     environment {
-        // Récupération automatique des informations depuis le pom.xml
-        POM_GROUPID = readMavenPom().groupId
-        POM_ARTIFACTID = readMavenPom().artifactId
-        POM_VERSION = readMavenPom().version
+        POM_GROUPID = 'tn.esprit.rh'     // Remplacez par votre groupId réel
+        POM_ARTIFACTID = 'achat'       // Remplacez par votre artifactId réel
+        POM_VERSION = '1.0'              // Remplacez par votre version
     }
     
     stages {
@@ -35,7 +35,6 @@ pipeline {
             }
         }
         
-        // ========== NOUVEAU STAGE 1 : ANALYSE SONARQUBE ==========
         stage('SonarQube Analysis') {
             steps {
                 echo 'Analyse de la qualité du code avec SonarQube...'
@@ -45,7 +44,6 @@ pipeline {
             }
         }
         
-        // ========== NOUVEAU STAGE 2 : QUALITY GATE ==========
         stage('Quality Gate') {
             steps {
                 echo 'Vérification du Quality Gate SonarQube...'
@@ -62,7 +60,6 @@ pipeline {
             }
         }
         
-        // ========== NOUVEAU STAGE 3 : PUBLICATION DANS NEXUS ==========
         stage('Publish to Nexus') {
             steps {
                 echo 'Publication de l\'artéfact dans Nexus...'

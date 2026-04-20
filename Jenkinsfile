@@ -42,13 +42,13 @@ pipeline {
         
         // ========== QUALITY GATE ==========
         stage('Quality Gate') {
-            steps {
-                echo 'Vérification du Quality Gate SonarQube...'
-                timeout(time: 1, unit: 'HOURS') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
+    steps {
+        echo 'Vérification du Quality Gate SonarQube...'
+        timeout(time: 5, unit: 'MINUTES') {  // Réduit de 1h à 5 minutes
+            waitForQualityGate abortPipeline: true
         }
+    }
+}
         
         stage('Package') {
             steps {

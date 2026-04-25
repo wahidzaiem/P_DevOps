@@ -4,12 +4,12 @@ public class FournisseurDTO {
     private Long idFournisseur;
     private String code;
     private String libelle;
-    private String secteurActivite;
+    private String secteurActivite;  
     private Long detailFournisseurId;
     
     public FournisseurDTO() {}
     
-    // Getters
+    
     public Long getIdFournisseur() {
         return idFournisseur;
     }

@@ -14,7 +14,7 @@ public class FournisseurMapper {
         dto.setIdFournisseur(entity.getIdFournisseur());
         dto.setCode(entity.getCode());
         dto.setLibelle(entity.getLibelle());
-        dto.setSecteurActivite(entity.getSecteurActivite());
+     
         
         if (entity.getDetailFournisseur() != null) {
             dto.setDetailFournisseurId(entity.getDetailFournisseur().getIdDetailFournisseur());
@@ -30,7 +30,6 @@ public class FournisseurMapper {
         entity.setIdFournisseur(dto.getIdFournisseur());
         entity.setCode(dto.getCode());
         entity.setLibelle(dto.getLibelle());
-        entity.setSecteurActivite(dto.getSecteurActivite());
         
         return entity;
     }

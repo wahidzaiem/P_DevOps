@@ -12,9 +12,9 @@ public class ProduitMapper {
         
         ProduitDTO dto = new ProduitDTO();
         dto.setIdProduit(entity.getIdProduit());
-        dto.setCode(entity.getCode());
-        dto.setLibelle(entity.getLibelle());
-        dto.setPrixUnitaire(entity.getPrixUnitaire());
+        dto.setCode(entity.getCodeProduit());        
+        dto.setLibelle(entity.getLibelleProduit());  
+        dto.setPrixUnitaire(entity.getPrix());       
         
         if (entity.getStock() != null) {
             dto.setStockId(entity.getStock().getIdStock());
@@ -32,9 +32,9 @@ public class ProduitMapper {
         
         Produit entity = new Produit();
         entity.setIdProduit(dto.getIdProduit());
-        entity.setCode(dto.getCode());
-        entity.setLibelle(dto.getLibelle());
-        entity.setPrixUnitaire(dto.getPrixUnitaire());
+        entity.setCodeProduit(dto.getCode());       
+        entity.setLibelleProduit(dto.getLibelle());  
+        entity.setPrix(dto.getPrixUnitaire());      
         
         return entity;
     }

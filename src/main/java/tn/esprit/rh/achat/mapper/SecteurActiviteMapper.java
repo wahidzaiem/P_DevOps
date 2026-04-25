@@ -12,8 +12,8 @@ public class SecteurActiviteMapper {
         
         SecteurActiviteDTO dto = new SecteurActiviteDTO();
         dto.setIdSecteurActivite(entity.getIdSecteurActivite());
-        dto.setCode(entity.getCode());
-        dto.setLibelle(entity.getLibelle());
+        dto.setCode(entity.getCodeSecteurActivite());    
+        dto.setLibelle(entity.getLibelleSecteurActivite()); 
         return dto;
     }
     
@@ -22,8 +22,8 @@ public class SecteurActiviteMapper {
         
         SecteurActivite entity = new SecteurActivite();
         entity.setIdSecteurActivite(dto.getIdSecteurActivite());
-        entity.setCode(dto.getCode());
-        entity.setLibelle(dto.getLibelle());
+        entity.setCodeSecteurActivite(dto.getCode());    
+        entity.setLibelleSecteurActivite(dto.getLibelle());
         return entity;
     }
     

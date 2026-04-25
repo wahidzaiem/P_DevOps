@@ -4,13 +4,13 @@ public class ProduitDTO {
     private Long idProduit;
     private String code;
     private String libelle;
-    private Float prixUnitaire;
+    private Float prixUnitaire; 
     private Long stockId;
     private Long categorieProduitId;
     
     public ProduitDTO() {}
     
-    // Getters et Setters
+    
     public Long getIdProduit() {
         return idProduit;
     }

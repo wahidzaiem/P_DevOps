@@ -3,56 +3,52 @@ package tn.esprit.rh.achat.controllers;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import tn.esprit.rh.achat.dto.SecteurActiviteDTO;
 import tn.esprit.rh.achat.entities.SecteurActivite;
+import tn.esprit.rh.achat.mapper.SecteurActiviteMapper;
 import tn.esprit.rh.achat.services.ISecteurActiviteService;
 
 import java.util.List;
 
 @RestController
-@Api(tags = "Gestion des secteurs activites")
+@Api(tags = "Gestion des secteurs d'activité")
 @RequestMapping("/secteurActivite")
-@CrossOrigin("*")
 public class SecteurActiviteController {
 
-	@Autowired
-	ISecteurActiviteService secteurActiviteService;
-	
-	// http://localhost:8089/SpringMVC/secteurActivite/retrieve-all-secteurActivite
-	@GetMapping("/retrieve-all-secteurActivite")
-	@ResponseBody
-	public List<SecteurActivite> getSecteurActivite() {
-		List<SecteurActivite> list = secteurActiviteService.retrieveAllSecteurActivite();
-		return list;
-	}
+    @Autowired
+    ISecteurActiviteService secteurActiviteService;
 
-	// http://localhost:8089/SpringMVC/secteurActivite/retrieve-secteurActivite/8
-	@GetMapping("/retrieve-secteurActivite/{secteurActivite-id}")
-	@ResponseBody
-	public SecteurActivite retrieveSecteurActivite(@PathVariable("secteurActivite-id") Long secteurActiviteId) {
-		return secteurActiviteService.retrieveSecteurActivite(secteurActiviteId);
-	}
+    @GetMapping("/retrieve-all-secteurActivite")
+    @ResponseBody
+    public List<SecteurActiviteDTO> getSecteurActivites() {
+        return SecteurActiviteMapper.toDTOList(secteurActiviteService.retrieveAllSecteurActivites());
+    }
 
-	// http://localhost:8089/SpringMVC/secteurActivite/add-secteurActivite
-	@PostMapping("/add-secteurActivite")
-	@ResponseBody
-	public SecteurActivite addSecteurActivite(@RequestBody SecteurActivite sa) {
-		SecteurActivite secteurActivite = secteurActiviteService.addSecteurActivite(sa);
-		return secteurActivite;
-	}
+    @GetMapping("/retrieve-secteurActivite/{secteurActivite-id}")
+    @ResponseBody
+    public SecteurActiviteDTO retrieveSecteurActivite(@PathVariable("secteurActivite-id") Long secteurActiviteId) {
+        return SecteurActiviteMapper.toDTO(secteurActiviteService.retrieveSecteurActivite(secteurActiviteId));
+    }
 
-	// http://localhost:8089/SpringMVC/secteurActivite/remove-secteurActivite/{secteurActivite-id}
-	@DeleteMapping("/remove-secteurActivite/{secteurActivite-id}")
-	@ResponseBody
-	public void removeSecteurActivite(@PathVariable("secteurActivite-id") Long secteurActiviteId) {
-		secteurActiviteService.deleteSecteurActivite(secteurActiviteId);
-	}
+    @PostMapping("/add-secteurActivite")
+    @ResponseBody
+    public SecteurActiviteDTO addSecteurActivite(@RequestBody SecteurActiviteDTO secteurActiviteDTO) {
+        SecteurActivite entity = SecteurActiviteMapper.toEntity(secteurActiviteDTO);
+        SecteurActivite savedEntity = secteurActiviteService.addSecteurActivite(entity);
+        return SecteurActiviteMapper.toDTO(savedEntity);
+    }
 
-	// http://localhost:8089/SpringMVC/secteurActivite/modify-secteurActivite
-	@PutMapping("/modify-secteurActivite")
-	@ResponseBody
-	public SecteurActivite modifySecteurActivite(@RequestBody SecteurActivite secteurActivite) {
-		return secteurActiviteService.updateSecteurActivite(secteurActivite);
-	}
+    @DeleteMapping("/remove-secteurActivite/{secteurActivite-id}")
+    @ResponseBody
+    public void removeSecteurActivite(@PathVariable("secteurActivite-id") Long secteurActiviteId) {
+        secteurActiviteService.deleteSecteurActivite(secteurActiviteId);
+    }
 
-	
+    @PutMapping("/modify-secteurActivite")
+    @ResponseBody
+    public SecteurActiviteDTO modifySecteurActivite(@RequestBody SecteurActiviteDTO secteurActiviteDTO) {
+        SecteurActivite entity = SecteurActiviteMapper.toEntity(secteurActiviteDTO);
+        SecteurActivite updatedEntity = secteurActiviteService.updateSecteurActivite(entity);
+        return SecteurActiviteMapper.toDTO(updatedEntity);
+    }
 }

@@ -1,0 +1,46 @@
+package tn.esprit.rh.achat.mapper;
+
+import tn.esprit.rh.achat.dto.ProduitDTO;
+import tn.esprit.rh.achat.entities.Produit;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class ProduitMapper {
+    
+    public static ProduitDTO toDTO(Produit entity) {
+        if (entity == null) return null;
+        
+        ProduitDTO dto = new ProduitDTO();
+        dto.setIdProduit(entity.getIdProduit());
+        dto.setCode(entity.getCode());
+        dto.setLibelle(entity.getLibelle());
+        dto.setPrixUnitaire(entity.getPrixUnitaire());
+        
+        if (entity.getStock() != null) {
+            dto.setStockId(entity.getStock().getIdStock());
+        }
+        
+        if (entity.getCategorieProduit() != null) {
+            dto.setCategorieProduitId(entity.getCategorieProduit().getIdCategorieProduit());
+        }
+        
+        return dto;
+    }
+    
+    public static Produit toEntity(ProduitDTO dto) {
+        if (dto == null) return null;
+        
+        Produit entity = new Produit();
+        entity.setIdProduit(dto.getIdProduit());
+        entity.setCode(dto.getCode());
+        entity.setLibelle(dto.getLibelle());
+        entity.setPrixUnitaire(dto.getPrixUnitaire());
+        
+        return entity;
+    }
+    
+    public static List<ProduitDTO> toDTOList(List<Produit> entities) {
+        if (entities == null) return null;
+        return entities.stream().map(ProduitMapper::toDTO).collect(Collectors.toList());
+    }
+}

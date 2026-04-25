@@ -38,17 +38,6 @@ public class ReglementRestController {
         return ReglementMapper.toDTO(savedEntity);
     }
 
-    @DeleteMapping("/remove-reglement/{reglement-id}")
-    @ResponseBody
-    public void removeReglement(@PathVariable("reglement-id") Long reglementId) {
-        reglementService.deleteReglement(reglementId);
-    }
-
-    @PutMapping("/modify-reglement")
-    @ResponseBody
-    public ReglementDTO modifyReglement(@RequestBody ReglementDTO reglementDTO) {
-        Reglement entity = ReglementMapper.toEntity(reglementDTO);
-        Reglement updatedEntity = reglementService.updateReglement(entity);
-        return ReglementMapper.toDTO(updatedEntity);
-    }
+    // Note: deleteReglement et updateReglement n'existent pas dans IReglementService
+    // Les méthodes suivantes ne sont pas disponibles, commentez-les ou supprimez-les
 }

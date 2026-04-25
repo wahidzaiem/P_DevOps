@@ -21,7 +21,8 @@ public class SecteurActiviteController {
     @GetMapping("/retrieve-all-secteurActivite")
     @ResponseBody
     public List<SecteurActiviteDTO> getSecteurActivites() {
-        return SecteurActiviteMapper.toDTOList(secteurActiviteService.retrieveAllSecteurActivites());
+        // ✅ La méthode s'appelle retrieveAllSecteurActivite (sans 's' à la fin)
+        return SecteurActiviteMapper.toDTOList(secteurActiviteService.retrieveAllSecteurActivite());
     }
 
     @GetMapping("/retrieve-secteurActivite/{secteurActivite-id}")

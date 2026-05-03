@@ -78,7 +78,7 @@ pipeline {
                     nexusArtifactUploader(
                         nexusVersion: 'nexus3',
                         protocol: 'http',
-                        nexusUrl: 'localhost:8081',
+                        nexusUrl: 'localhost:8083',
                         groupId: groupId,
                         version: version,
                         repository: 'my-app-releases',

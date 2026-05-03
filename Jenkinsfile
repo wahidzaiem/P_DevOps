@@ -1,115 +1,86 @@
 pipeline {
     agent any
-    
     tools {
-        maven 'Maven3'
-        jdk 'jdk17'
+        maven 'M2_HOME'
+        jdk 'JAVA_HOME'
     }
-    
-    // Supprimez le bloc environment - on va le gérer autrement
-    
     stages {
         stage('Checkout') {
             steps {
                 echo 'Récupération du code depuis Git...'
-                checkout scm
+                git branch: 'main',
+                    url: 'https://github.com/wahidzaiem/P_DevOps.git'
             }
         }
-        
         stage('Build') {
             steps {
                 echo 'Compilation du projet...'
                 sh 'mvn clean compile'
             }
         }
-        
         stage('Test') {
             steps {
                 echo 'Exécution des tests...'
                 sh 'mvn test'
             }
         }
-        
-        // ========== ANALYSE SONARQUBE ==========
         stage('SonarQube Analysis') {
             steps {
-                echo 'Analyse de la qualité du code avec SonarQube...'
+                echo 'Analyse SonarQube...'
                 withSonarQubeEnv('sonar-server') {
                     sh 'mvn sonar:sonar'
                 }
             }
         }
-        
-        // ========== QUALITY GATE ==========
-        stage('Quality Gate') {
-    steps {
-        echo 'Vérification du Quality Gate (optionnelle)...'
-        script {
-            try {
-                timeout(time: 1, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: false  // false = ne pas échouer
-                }
-            } catch (Exception e) {
-                echo "Quality Gate check timeout, continuing..."
-            }
-        }
-    }
-}
-        
         stage('Package') {
             steps {
                 echo 'Création du JAR...'
                 sh 'mvn package -DskipTests'
             }
         }
-        
-        // ========== PUBLICATION DANS NEXUS ==========
         stage('Publish to Nexus') {
             steps {
-                echo 'Publication de l\'artéfact dans Nexus...'
-                
-                // Récupération des informations du pom.xml
+                echo 'Publication dans Nexus...'
                 script {
                     def pom = readMavenPom file: 'pom.xml'
-                    def groupId = pom.groupId
-                    def artifactId = pom.artifactId
-                    def version = pom.version
-                    
                     nexusArtifactUploader(
                         nexusVersion: 'nexus3',
                         protocol: 'http',
-                        nexusUrl: 'localhost:8081',
-                        groupId: groupId,
-                        version: version,
+                        nexusUrl: 'nexus:8081',
+                        groupId: pom.groupId,
+                        version: pom.version,
                         repository: 'my-app-releases',
                         credentialsId: 'nexus-credentials',
-                        artifacts: [
-                            [
-                                artifactId: artifactId,
-                                classifier: '',
-                                file: "target/${artifactId}-${version}.jar",
-                                type: 'jar'
-                            ]
-                        ]
+                        artifacts: [[
+                            artifactId: pom.artifactId,
+                            classifier: '',
+                            file: "target/${pom.artifactId}-${pom.version}.jar",
+                            type: 'jar'
+                        ]]
                     )
                 }
             }
         }
-        
-        stage('Run') {
+        stage('Docker Build') {
             steps {
-                echo 'Lancement de l\'application...'
-                sh 'mvn spring-boot:run &'
+                echo 'Construction de l image Docker...'
+                sh 'docker build -t achat:latest .'
             }
         }
+        stage('Docker Run') {
+    steps {
+        echo 'Lancement du conteneur...'
+        sh '''
+            docker stop achat-app || true
+            docker rm achat-app || true
+            docker run -d --name achat-app --network devsecops_default -p 8089:8089 -e SPRING_DATASOURCE_URL='jdbc:mysql://mysql:3306/achatdb?useUnicode=true&serverTimezone=UTC' -e SPRING_DATASOURCE_USERNAME=root -e SPRING_DATASOURCE_PASSWORD=root -e SERVER_PORT=8089 -e SERVER_SERVLET_CONTEXT_PATH=/SpringMVC -e SPRING_MVC_PATHMATCH_MATCHING_STRATEGY=ant_path_matcher achat:latest
+
+        '''
     }
-    
+}
+    }
     post {
-        success {
-            echo 'Pipeline réussi ! Artéfact publié dans Nexus'
-        }
-        failure {
-            echo 'Pipeline échoué !'
-        }
+        success { echo 'Pipeline réussi!' }
+        failure { echo 'Pipeline échoué!' }
     }
 }

@@ -13,7 +13,6 @@ services:
       - jenkins_data:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
-
   sonarqube:
     image: sonarqube:community
     container_name: sonarqube
@@ -24,7 +23,6 @@ services:
     volumes:
       - sonarqube_data:/opt/sonarqube/data
     restart: unless-stopped
-
   nexus:
     image: sonatype/nexus3
     container_name: nexus
@@ -33,7 +31,6 @@ services:
     volumes:
       - nexus_data:/nexus-data
     restart: unless-stopped
-
   mysql:
     image: mysql:8.0
     container_name: mysql
@@ -45,9 +42,27 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     restart: unless-stopped
-
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: unless-stopped
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
 volumes:
   jenkins_data:
   sonarqube_data:
   nexus_data:
   mysql_data:
+  grafana_data:

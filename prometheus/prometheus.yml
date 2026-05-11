@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Surveillance de Prometheus lui-même
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Surveillance de l'application Spring Boot - CORRIGÉ
+  - job_name: 'achat-app'
+    metrics_path: '/SpringMVC/actuator/prometheus'
+    static_configs:
+      - targets: ['devops-app:8081']
+
+  # Surveillance de Jenkins
+  - job_name: 'jenkins'
+    metrics_path: '/prometheus'
+    static_configs:
+      - targets: ['devops-jenkins:8080']
+
+  # Surveillance de Nexus
+  - job_name: 'nexus'
+    static_configs:
+      - targets: ['devops-nexus:8081']
+
+  # Surveillance de SonarQube
+  - job_name: 'sonarqube'
+    static_configs:
+      - targets: ['devops-sonarqube:9000']

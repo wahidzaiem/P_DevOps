@@ -1,0 +1,51 @@
+services:
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    container_name: devops-jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - ./volumes/jenkins:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - devops-network
+    restart: unless-stopped
+
+  sonarqube:
+    image: sonarqube:9.9-community
+    container_name: devops-sonarqube
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./volumes/sonarqube/data:/opt/sonarqube/data
+      - ./volumes/sonarqube/extensions:/opt/sonarqube/extensions
+    networks:
+      - devops-network
+    restart: unless-stopped
+
+  nexus:
+    image: sonatype/nexus3:latest
+    container_name: devops-nexus
+    ports:
+      - "8083:8081"
+    volumes:
+      - ./volumes/nexus:/nexus-data
+    environment:
+      - INSTALL4J_ADD_VM_PARAMS=-Xms270M -Xmx270M -XX:MaxDirectMemorySize=270M
+    networks:
+      - devops-network
+    restart: unless-stopped
+
+  achat-app:
+    build: ./app
+    container_name: devops-app
+    ports:
+      - "8089:8089"
+    networks:
+      - devops-network
+    restart: unless-stopped
+
+networks:
+  devops-network:
+    driver: bridge

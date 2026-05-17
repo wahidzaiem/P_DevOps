@@ -158,6 +158,15 @@
 					<skipTests>${skipTests}</skipTests>
 				</configuration>
 			</plugin>
+		<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>8.4.0</version>
+				<configuration>
+					<failBuildOnCVSS>11</failBuildOnCVSS>
+					<format>HTML</format>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 </project>

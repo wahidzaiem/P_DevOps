@@ -1,1 +1,56 @@
+# Volumes Docker (données sensibles)
 volumes/
+volumes/
+
+# Secrets et fichiers sensibles
+*.key
+*.pem
+*.crt
+*.p12
+*.secret
+*password*
+*.env
+.env*
+secrets.properties
+application-secrets.properties
+
+# Fichiers de configuration sensibles
+*.log
+*.tmp
+*.swp
+*.pid
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+
+# Build
+target/
+*.class
+*.jar
+*.war
+!app/src/main/resources/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jenkins
+jenkins/
+.jenkins/
+
+# SonarQube
+.sonar/
+.scannerwork/
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# Docker
+*.tar.gz

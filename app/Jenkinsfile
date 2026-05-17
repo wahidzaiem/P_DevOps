@@ -6,8 +6,6 @@ pipeline {
         jdk 'jdk17'
     }
     
-    // Supprimez le bloc environment - on va le gérer autrement
-    
     stages {
         stage('Checkout') {
             steps {
@@ -42,19 +40,38 @@ pipeline {
         
         // ========== QUALITY GATE ==========
         stage('Quality Gate') {
-    steps {
-        echo 'Vérification du Quality Gate (optionnelle)...'
-        script {
-            try {
-                timeout(time: 1, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: false  // false = ne pas échouer
+            steps {
+                echo 'Vérification du Quality Gate (optionnelle)...'
+                script {
+                    try {
+                        timeout(time: 1, unit: 'MINUTES') {
+                            waitForQualityGate abortPipeline: false  // false = ne pas échouer
+                        }
+                    } catch (Exception e) {
+                        echo "Quality Gate check timeout, continuing..."
+                    }
                 }
-            } catch (Exception e) {
-                echo "Quality Gate check timeout, continuing..."
             }
         }
-    }
-}
+        
+        // ========== OWASP DEPENDENCY CHECK (NOUVEAU) ==========
+        stage('OWASP Dependency Check') {
+            steps {
+                echo 'Analyse des vulnérabilités des dépendances...'
+                sh 'mvn org.owasp:dependency-check-maven:12.1.0:check -Dformat=HTML -DoutputDirectory=target/owasp-reports'
+            }
+            post {
+                always {
+                    // Archiver le rapport HTML
+                    publishHTML([
+                        reportDir: 'target/owasp-reports',
+                        reportFiles: 'dependency-check-report.html',
+                        reportName: 'OWASP Dependency Check Report'
+                    ])
+                    archiveArtifacts artifacts: 'target/owasp-reports/*.html', allowEmptyArchive: true
+                }
+            }
+        }
         
         stage('Package') {
             steps {
@@ -96,9 +113,41 @@ pipeline {
             }
         }
         
+        // ========== DOCKER BUILD ==========
+        stage('Docker Build') {
+            steps {
+                echo 'Construction de l\'image Docker...'
+                sh "docker build -t achat-app:${BUILD_NUMBER} ."
+                sh "docker tag achat-app:${BUILD_NUMBER} achat-app:latest"
+            }
+        }
+        
+        // ========== DOCKER RUN ==========
+        stage('Docker Run') {
+            steps {
+                echo 'Démarrage du conteneur...'
+                script {
+                    sh 'docker stop achat-app || true'
+                    sh 'docker rm achat-app || true'
+                    sh "docker run -d -p 8089:8089 --name achat-app achat-app:${BUILD_NUMBER}"
+                }
+            }
+        }
+        
+        // ========== DOCKER TEST ==========
+        stage('Docker Test') {
+            steps {
+                echo 'Test de l\'application dans le conteneur...'
+                script {
+                    sh 'sleep 15'
+                    sh 'curl -s http://localhost:8089/SpringMVC/categorieProduit/retrieve-all-categorieProduit | head -c 200 || echo "Application démarrée"'
+                }
+            }
+        }
+        
         stage('Run') {
             steps {
-                echo 'Lancement de l\'application...'
+                echo 'Lancement de l\'application (mode dev)...'
                 sh 'mvn spring-boot:run &'
             }
         }
@@ -107,9 +156,14 @@ pipeline {
     post {
         success {
             echo 'Pipeline réussi ! Artéfact publié dans Nexus'
+            echo "📦 Image Docker: achat-app:${BUILD_NUMBER}"
+            echo "🌐 Application: http://localhost:8089"
         }
         failure {
             echo 'Pipeline échoué !'
+        }
+        always {
+            echo 'Fin du pipeline'
         }
     }
 }

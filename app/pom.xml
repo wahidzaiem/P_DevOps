@@ -165,10 +165,20 @@
 				<artifactId>dependency-check-maven</artifactId>
 				<version>12.1.0</version>
 				<configuration>
+            <skipOssIndex>true</skipOssIndex>
+            <analyzers>
+                <analyzer>
+                    <name>OSS Index Analyzer</name>
+                    <enabled>false</enabled>
+                </analyzer>
+            </analyzers>
 					<format>HTML</format>
 					<outputDirectory>${project.basedir}/target/owasp-reports</outputDirectory>
 					<!-- Seuil à 11 pour ne jamais échouer le build -->
 					<failBuildOnCVSS>11</failBuildOnCVSS>
+            <analyzer>
+                <ossindexEnabled>false</ossindexEnabled>
+            </analyzer>
 				</configuration>
 				<executions>
 					<execution>

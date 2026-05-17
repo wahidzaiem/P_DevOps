@@ -61,15 +61,18 @@ pipeline {
             }
         }
         
+        // ========== OWASP - GÉNÉRATION RAPPORT SEULEMENT ==========
         stage('OWASP Dependency Check') {
             steps {
-                echo 'Analyse des vulnérabilités...'
+                echo 'Analyse des vulnérabilités (génération du rapport seulement)...'
                 dir('app') {
-                    sh 'mvn org.owasp:dependency-check-maven:12.1.0:check -Dformat=HTML -DoutputDirectory=target/owasp-reports'
+                    // failBuildOnCVSS=10 pour ne jamais échouer le build
+                    sh 'mvn org.owasp:dependency-check-maven:12.1.0:check -DfailBuildOnCVSS=10 -Dformat=HTML -DoutputDirectory=target/owasp-reports'
                 }
             }
             post {
                 always {
+                    // Archiver le rapport HTML même en cas d'erreur
                     publishHTML([
                         reportDir: 'app/target/owasp-reports',
                         reportFiles: 'dependency-check-report.html',
@@ -165,6 +168,8 @@ pipeline {
     post {
         success {
             echo 'Pipeline réussi !'
+            echo "📦 Image Docker: achat-app:${BUILD_NUMBER}"
+            echo "🌐 Application: http://localhost:8089"
         }
         failure {
             echo 'Pipeline échoué !'

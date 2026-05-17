@@ -41,3 +41,17 @@ build/
 *.iml
 application.properties
 
+
+### Secrets et fichiers sensibles ###
+*.env
+.env
+*.key
+*.pem
+*.p12
+secrets.yml
+docker-compose.override.yml
+
+### Fichiers de build ###
+*.jar
+*.war
+*.ear

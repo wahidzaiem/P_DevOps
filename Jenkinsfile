@@ -14,61 +14,68 @@ pipeline {
             }
         }
         
+        // ========== ALLER DANS LE DOSSIER APP ==========
         stage('Build') {
             steps {
                 echo 'Compilation du projet...'
-                sh 'mvn clean compile'
+                dir('app') {
+                    sh 'mvn clean compile'
+                }
             }
         }
         
         stage('Test') {
             steps {
                 echo 'Exécution des tests...'
-                sh 'mvn test'
-            }
-        }
-        
-        // ========== ANALYSE SONARQUBE ==========
-        stage('SonarQube Analysis') {
-            steps {
-                echo 'Analyse de la qualité du code avec SonarQube...'
-                withSonarQubeEnv('sonar-server') {
-                    sh 'mvn sonar:sonar'
+                dir('app') {
+                    sh 'mvn test'
                 }
             }
         }
         
-        // ========== QUALITY GATE ==========
-        stage('Quality Gate') {
+        stage('SonarQube Analysis') {
             steps {
-                echo 'Vérification du Quality Gate (optionnelle)...'
-                script {
-                    try {
-                        timeout(time: 1, unit: 'MINUTES') {
-                            waitForQualityGate abortPipeline: false  // false = ne pas échouer
-                        }
-                    } catch (Exception e) {
-                        echo "Quality Gate check timeout, continuing..."
+                echo 'Analyse de la qualité du code...'
+                dir('app') {
+                    withSonarQubeEnv('sonar-server') {
+                        sh 'mvn sonar:sonar'
                     }
                 }
             }
         }
         
-        // ========== OWASP DEPENDENCY CHECK (NOUVEAU) ==========
+        stage('Quality Gate') {
+            steps {
+                echo 'Vérification du Quality Gate...'
+                dir('app') {
+                    script {
+                        try {
+                            timeout(time: 1, unit: 'MINUTES') {
+                                waitForQualityGate abortPipeline: false
+                            }
+                        } catch (Exception e) {
+                            echo "Quality Gate check timeout, continuing..."
+                        }
+                    }
+                }
+            }
+        }
+        
         stage('OWASP Dependency Check') {
             steps {
-                echo 'Analyse des vulnérabilités des dépendances...'
-                sh 'mvn org.owasp:dependency-check-maven:12.1.0:check -Dformat=HTML -DoutputDirectory=target/owasp-reports'
+                echo 'Analyse des vulnérabilités...'
+                dir('app') {
+                    sh 'mvn org.owasp:dependency-check-maven:12.1.0:check -Dformat=HTML -DoutputDirectory=target/owasp-reports'
+                }
             }
             post {
                 always {
-                    // Archiver le rapport HTML
                     publishHTML([
-                        reportDir: 'target/owasp-reports',
+                        reportDir: 'app/target/owasp-reports',
                         reportFiles: 'dependency-check-report.html',
                         reportName: 'OWASP Dependency Check Report'
                     ])
-                    archiveArtifacts artifacts: 'target/owasp-reports/*.html', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'app/target/owasp-reports/*.html', allowEmptyArchive: true
                 }
             }
         }
@@ -76,53 +83,54 @@ pipeline {
         stage('Package') {
             steps {
                 echo 'Création du JAR...'
-                sh 'mvn package -DskipTests'
-            }
-        }
-        
-        // ========== PUBLICATION DANS NEXUS ==========
-        stage('Publish to Nexus') {
-            steps {
-                echo 'Publication de l\'artéfact dans Nexus...'
-                
-                // Récupération des informations du pom.xml
-                script {
-                    def pom = readMavenPom file: 'pom.xml'
-                    def groupId = pom.groupId
-                    def artifactId = pom.artifactId
-                    def version = pom.version
-                    
-                    nexusArtifactUploader(
-                        nexusVersion: 'nexus3',
-                        protocol: 'http',
-                        nexusUrl: 'localhost:8081',
-                        groupId: groupId,
-                        version: version,
-                        repository: 'my-app-releases',
-                        credentialsId: 'nexus-credentials',
-                        artifacts: [
-                            [
-                                artifactId: artifactId,
-                                classifier: '',
-                                file: "target/${artifactId}-${version}.jar",
-                                type: 'jar'
-                            ]
-                        ]
-                    )
+                dir('app') {
+                    sh 'mvn package -DskipTests'
                 }
             }
         }
         
-        // ========== DOCKER BUILD ==========
-        stage('Docker Build') {
+        stage('Publish to Nexus') {
             steps {
-                echo 'Construction de l\'image Docker...'
-                sh "docker build -t achat-app:${BUILD_NUMBER} ."
-                sh "docker tag achat-app:${BUILD_NUMBER} achat-app:latest"
+                echo 'Publication dans Nexus...'
+                dir('app') {
+                    script {
+                        def pom = readMavenPom file: 'pom.xml'
+                        def groupId = pom.groupId
+                        def artifactId = pom.artifactId
+                        def version = pom.version
+                        
+                        nexusArtifactUploader(
+                            nexusVersion: 'nexus3',
+                            protocol: 'http',
+                            nexusUrl: 'localhost:8083',
+                            groupId: groupId,
+                            version: version,
+                            repository: 'my-app-releases',
+                            credentialsId: 'nexus-credentials',
+                            artifacts: [
+                                [
+                                    artifactId: artifactId,
+                                    classifier: '',
+                                    file: "target/${artifactId}-${version}.jar",
+                                    type: 'jar'
+                                ]
+                            ]
+                        )
+                    }
+                }
             }
         }
         
-        // ========== DOCKER RUN ==========
+        stage('Docker Build') {
+            steps {
+                echo 'Construction de l\'image Docker...'
+                dir('app') {
+                    sh "docker build -t achat-app:${BUILD_NUMBER} ."
+                    sh "docker tag achat-app:${BUILD_NUMBER} achat-app:latest"
+                }
+            }
+        }
+        
         stage('Docker Run') {
             steps {
                 echo 'Démarrage du conteneur...'
@@ -134,10 +142,9 @@ pipeline {
             }
         }
         
-        // ========== DOCKER TEST ==========
         stage('Docker Test') {
             steps {
-                echo 'Test de l\'application dans le conteneur...'
+                echo 'Test de l\'application...'
                 script {
                     sh 'sleep 15'
                     sh 'curl -s http://localhost:8089/SpringMVC/categorieProduit/retrieve-all-categorieProduit | head -c 200 || echo "Application démarrée"'
@@ -147,17 +154,17 @@ pipeline {
         
         stage('Run') {
             steps {
-                echo 'Lancement de l\'application (mode dev)...'
-                sh 'mvn spring-boot:run &'
+                echo 'Lancement de l\'application...'
+                dir('app') {
+                    sh 'mvn spring-boot:run &'
+                }
             }
         }
     }
     
     post {
         success {
-            echo 'Pipeline réussi ! Artéfact publié dans Nexus'
-            echo "📦 Image Docker: achat-app:${BUILD_NUMBER}"
-            echo "🌐 Application: http://localhost:8089"
+            echo 'Pipeline réussi !'
         }
         failure {
             echo 'Pipeline échoué !'

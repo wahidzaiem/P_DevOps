@@ -182,7 +182,7 @@ pipeline {
                 echo 'Démarrage du conteneur...'
                 sh 'docker stop achat-app || true'
                 sh 'docker rm achat-app || true'
-                sh "docker run -d -p 8089:8089 --name achat-app achat-app:${BUILD_NUMBER}"
+                sh "docker run -d -p 8089:8081 --name achat-app achat-app:${BUILD_NUMBER}"
             }
         }
 

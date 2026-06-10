@@ -169,7 +169,7 @@ pipeline {
                         docker run --rm \
                         --network container:zap-target \
                         zaproxy/zap-stable \
-                        zap-baseline.py -t http://localhost:8081
+                        zap-baseline.py -t http://localhost:8081/SpringMVC/categorieProduit/retrieve-all-categorieProduit
                     """
 
                     sh 'docker rm -f zap-target || true'

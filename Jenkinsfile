@@ -1,70 +1,82 @@
 pipeline {
     agent any
-    
+
     tools {
         maven 'Maven3'
         jdk 'jdk17'
     }
-    
+
+    options {
+        skipDefaultCheckout(false)  // laisser le checkout automatique
+    }
+
     stages {
-        stage('Checkout') {
-            steps {
-                echo 'Récupération du code depuis Git...'
-                checkout scm
-            }
-        }
-        
+
+        // ❌ Stage 'Checkout' manuel supprimé — le checkout déclaratif suffit
+
         stage('Build') {
             steps {
                 echo 'Compilation du projet...'
                 dir('app') {
-                    sh 'mvn clean compile'
+                    sh 'mvn clean compile -B'
                 }
             }
         }
-        
+
         stage('Test') {
             steps {
                 echo 'Exécution des tests...'
                 dir('app') {
-                    sh 'mvn test'
+                    sh 'mvn test -B'
+                }
+            }
+            post {
+                always {
+                    junit 'app/target/surefire-reports/*.xml'
                 }
             }
         }
-        
+
         stage('SonarQube Analysis') {
             steps {
                 echo 'Analyse de la qualité du code...'
                 dir('app') {
                     withSonarQubeEnv('sonar-server') {
-                        sh 'mvn sonar:sonar'
-                    }
-                }
-            }
-        }
-        
-        stage('Quality Gate') {
-            steps {
-                echo 'Vérification du Quality Gate...'
-                dir('app') {
-                    script {
-                        try {
-                            timeout(time: 1, unit: 'MINUTES') {
-                                waitForQualityGate abortPipeline: false
-                            }
-                        } catch (Exception e) {
-                            echo "Quality Gate check timeout, continuing..."
+                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                            sh 'mvn sonar:sonar -B -Dsonar.token=${SONAR_TOKEN}'
                         }
                     }
                 }
             }
         }
-        
+
+        stage('Quality Gate') {
+            steps {
+                echo 'Vérification du Quality Gate...'
+                script {
+                    try {
+                        timeout(time: 2, unit: 'MINUTES') {
+                            waitForQualityGate abortPipeline: false
+                        }
+                    } catch (Exception e) {
+                        echo "Quality Gate timeout, continuing..."
+                    }
+                }
+            }
+        }
+
         stage('OWASP Dependency Check') {
             steps {
                 echo 'Analyse des vulnérabilités...'
                 dir('app') {
-                    sh 'mvn org.owasp:dependency-check-maven:12.1.0:check -DskipOssIndex=true -DfailBuildOnCVSS=11 -Dformat=HTML -DoutputDirectory=target/owasp-reports'
+                    sh '''
+                        mvn org.owasp:dependency-check-maven:12.1.0:check \
+                            -B \
+                            -DskipOssIndex=true \
+                            -DfailBuildOnCVSS=11 \
+                            -Dformat=HTML \
+                            -DoutputDirectory=target/owasp-reports
+                    '''
                 }
             }
             post {
@@ -77,52 +89,47 @@ pipeline {
                         keepAll: true,
                         alwaysLinkToLastBuild: true
                     ])
-                    archiveArtifacts artifacts: 'app/target/owasp-reports/*.html', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'app/target/owasp-reports/*.html',
+                                     allowEmptyArchive: true
                 }
             }
         }
-        
+
         stage('Package') {
             steps {
                 echo 'Création du JAR...'
                 dir('app') {
-                    sh 'mvn package -DskipTests'
+                    sh 'mvn package -B -DskipTests'
                 }
             }
         }
-        
+
         stage('Publish to Nexus') {
             steps {
                 echo 'Publication dans Nexus...'
                 dir('app') {
                     script {
                         def pom = readMavenPom file: 'pom.xml'
-                        def groupId = pom.groupId
-                        def artifactId = pom.artifactId
-                        def version = pom.version
-                        
                         nexusArtifactUploader(
                             nexusVersion: 'nexus3',
                             protocol: 'http',
-                            nexusUrl: 'localhost:8083',
-                            groupId: groupId,
-                            version: version,
+                            nexusUrl: 'devops-nexus:8081',
+                            groupId: pom.groupId,
+                            version: pom.version,
                             repository: 'my-app-releases',
                             credentialsId: 'nexus-credentials',
-                            artifacts: [
-                                [
-                                    artifactId: artifactId,
-                                    classifier: '',
-                                    file: "target/${artifactId}-${version}.jar",
-                                    type: 'jar'
-                                ]
-                            ]
+                            artifacts: [[
+                                artifactId: pom.artifactId,
+                                classifier: '',
+                                file: "target/${pom.artifactId}-${pom.version}.jar",
+                                type: 'jar'
+                            ]]
                         )
                     }
                 }
             }
         }
-        
+
         stage('Docker Build') {
             steps {
                 echo 'Construction de l\'image Docker...'
@@ -132,43 +139,36 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Docker Run') {
             steps {
                 echo 'Démarrage du conteneur...'
-                script {
-                    sh 'docker stop achat-app || true'
-                    sh 'docker rm achat-app || true'
-                    sh "docker run -d -p 8089:8089 --name achat-app achat-app:${BUILD_NUMBER}"
-                }
+                sh 'docker stop achat-app || true'
+                sh 'docker rm achat-app || true'
+                sh "docker run -d -p 8089:8089 --name achat-app achat-app:${BUILD_NUMBER}"
             }
         }
-        
+
         stage('Docker Test') {
             steps {
                 echo 'Test de l\'application...'
-                script {
-                    sh 'sleep 15'
-                    sh 'curl -s http://localhost:8089/SpringMVC/categorieProduit/retrieve-all-categorieProduit | head -c 200 || echo "Application démarrée"'
-                }
+                sh 'sleep 15'
+                sh '''
+                    curl -sf http://localhost:8089/SpringMVC/categorieProduit/retrieve-all-categorieProduit \
+                    | head -c 200 || echo "Application démarrée"
+                '''
             }
         }
-        
-        stage('Run') {
-            steps {
-                echo 'Lancement de l\'application...'
-                dir('app') {
-                    sh 'mvn spring-boot:run &'
-                }
-            }
-        }
+
+        // ⚠️  Stage 'Run' supprimé — mvn spring-boot:run en background dans un pipeline
+        //     Jenkins cause une fuite de processus et n'a pas de sens après Docker Run
     }
-    
+
     post {
         success {
             echo 'Pipeline réussi !'
-            echo "📦 Image Docker: achat-app:${BUILD_NUMBER}"
-            echo "🌐 Application: http://localhost:8089"
+            echo "Image Docker: achat-app:${BUILD_NUMBER}"
+            echo "Application: http://localhost:8089"
         }
         failure {
             echo 'Pipeline échoué !'

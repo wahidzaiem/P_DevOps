@@ -145,6 +145,8 @@ pipeline {
                     sh '''
                     trivy image \
                         --severity HIGH,CRITICAL \
+                        --timeout 20m \
+                        --scanners vuln \
                         --format table \
                         achat-app:${BUILD_NUMBER}
                     '''

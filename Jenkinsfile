@@ -155,15 +155,22 @@ pipeline {
 
         stage('OWASP ZAP Scan') {
             steps {
-                    sh '''
-                    docker run -d --name zap-target -p 8089:8089 achat-app:${BUILD_NUMBER}
-                    sleep 20
+                    sh 'docker rm -f zap-target || true'
 
-                    docker run --rm --network host \
-                        ghcr.io/zaproxy/zaproxy:stable \
-                        zap-baseline.py \
-                        -t http://localhost:8089
-                    '''
+                    sh """
+                    docker run -d \
+                        --name zap-target \
+                        achat-app:${BUILD_NUMBER}
+                    """
+
+                    sh 'sleep 20'
+
+                    sh """
+                    docker run --rm \
+                        --network container:zap-target \
+                        zaproxy/zap-stable \
+                        zap-baseline.py -t http://localhost:8089
+                    """
             }
         }
 

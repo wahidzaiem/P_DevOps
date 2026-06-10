@@ -140,6 +140,31 @@ pipeline {
             }
         }
 
+        stage('Trivy Scan') {
+            steps {
+                    sh '''
+                    trivy image \
+                        --severity HIGH,CRITICAL \
+                        --format table \
+                        achat-app:${BUILD_NUMBER}
+                    '''
+            }
+        }
+
+        stage('OWASP ZAP Scan') {
+            steps {
+                    sh '''
+                    docker run -d --name zap-target -p 8089:8089 achat-app:${BUILD_NUMBER}
+                    sleep 20
+
+                    docker run --rm --network host \
+                        ghcr.io/zaproxy/zaproxy:stable \
+                        zap-baseline.py \
+                        -t http://localhost:8089
+                    '''
+            }
+        }
+
         stage('Docker Run') {
             steps {
                 echo 'Démarrage du conteneur...'

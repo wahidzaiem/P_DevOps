@@ -3,10 +3,10 @@ FROM jenkins/jenkins:lts-jdk17
 USER root
 
 RUN apt-get update && apt-get install -y \
-    curl wget git unzip docker.io \
+    curl wget git unzip docker.io gnupg lsb-release \
     && rm -rf /var/lib/apt/lists/*
 
-# Maven stable (OFFICIAL MIRROR OK)
+# Maven
 ENV MAVEN_VERSION=3.9.9
 
 RUN curl -fsSL https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
@@ -18,5 +18,26 @@ ENV PATH=$MAVEN_HOME/bin:$PATH
 
 # Docker access
 RUN groupadd -f docker && usermod -aG docker jenkins
+
+# ==========================
+# Installation Trivy
+# ==========================
+RUN wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key \
+    | gpg --dearmor -o /usr/share/keyrings/trivy.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" \
+    > /etc/apt/sources.list.d/trivy.list && \
+    apt-get update && \
+    apt-get install -y trivy
+
+# ==========================
+# Installation OWASP ZAP
+# ==========================
+ENV ZAP_VERSION=2.16.1
+
+RUN wget https://github.com/zaproxy/zaproxy/releases/download/v${ZAP_VERSION}/ZAP_${ZAP_VERSION}_Linux.tar.gz && \
+    tar -xzf ZAP_${ZAP_VERSION}_Linux.tar.gz -C /opt && \
+    mv /opt/ZAP_${ZAP_VERSION} /opt/zap && \
+    ln -s /opt/zap/zap.sh /usr/local/bin/zap && \
+    rm ZAP_${ZAP_VERSION}_Linux.tar.gz
 
 USER jenkins

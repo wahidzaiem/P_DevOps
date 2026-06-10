@@ -158,7 +158,7 @@ pipeline {
                     sh 'docker rm -f zap-target || true'
 
                     sh """
-                    docker run -d \
+                        docker run -d \
                         --name zap-target \
                         achat-app:${BUILD_NUMBER}
                     """
@@ -166,11 +166,13 @@ pipeline {
                     sh 'sleep 20'
 
                     sh """
-                    docker run --rm \
+                        docker run --rm \
                         --network container:zap-target \
                         zaproxy/zap-stable \
-                        zap-baseline.py -t http://localhost:8089
+                        zap-baseline.py -t http://localhost:8081
                     """
+
+                    sh 'docker rm -f zap-target || true'
             }
         }
 

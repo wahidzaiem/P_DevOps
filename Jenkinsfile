@@ -67,8 +67,13 @@ pipeline {
                 echo 'Analyse des vulnérabilités (génération du rapport seulement)...'
                 dir('app') {
                     // Désactivation OSS Index et seuil à 11 pour ne jamais échouer
-                    sh 'mvn org.owasp:dependency-check-maven:12.1.0:check -DskipOssIndex=true -DfailBuildOnCVSS=11 -Dformat=HTML -DoutputDirectory=target/owasp-reports'
-                }
+                                sh '''
+                                mvn org.owasp:dependency-check-maven:12.1.0:check \
+                                -DossindexAnalyzerEnabled=false \
+                                -DfailBuildOnCVSS=11 \
+                                -Dformat=HTML \
+                                -DoutputDirectory=target/owasp-reports
+                                '''                }
             }
             post {
                 always {

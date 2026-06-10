@@ -2,32 +2,21 @@ FROM jenkins/jenkins:lts-jdk17
 
 USER root
 
-# ===== Dépendances =====
 RUN apt-get update && apt-get install -y \
-    wget \
-    curl \
-    unzip \
-    apt-transport-https \
-    ca-certificates \
-    gnupg \
-    lsb-release
+    curl wget git unzip docker.io \
+    && rm -rf /var/lib/apt/lists/*
 
-# ===== Maven =====
-ENV MAVEN_VERSION=3.9.11
+# Maven stable (OFFICIAL MIRROR OK)
+ENV MAVEN_VERSION=3.9.9
 
-RUN wget https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz && \
-    tar -xzf apache-maven-${MAVEN_VERSION}-bin.tar.gz -C /opt && \
-    ln -s /opt/apache-maven-${MAVEN_VERSION}/bin/mvn /usr/bin/mvn && \
-    rm apache-maven-${MAVEN_VERSION}-bin.tar.gz
+RUN curl -fsSL https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
+    | tar -xz -C /opt/ \
+    && ln -s /opt/apache-maven-${MAVEN_VERSION} /opt/maven
 
-# ===== Docker CLI =====
-RUN curl -fsSL https://get.docker.com | sh
+ENV MAVEN_HOME=/opt/maven
+ENV PATH=$MAVEN_HOME/bin:$PATH
 
-# ===== permissions Jenkins =====
-RUN usermod -aG docker jenkins
+# Docker access
+RUN groupadd -f docker && usermod -aG docker jenkins
 
 USER jenkins
-
-# check versions
-RUN mvn -version
-RUN docker --version

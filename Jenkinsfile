@@ -169,6 +169,7 @@ pipeline {
                         docker run --rm \
                         --network container:zap-target \
                         zaproxy/zap-stable \
+                        -I \
                         zap-baseline.py -t http://localhost:8081/SpringMVC/categorieProduit/retrieve-all-categorieProduit
                     """
 

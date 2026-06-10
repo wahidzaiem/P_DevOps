@@ -27,6 +27,11 @@
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 		<sonar.jacoco.reportPaths>${project.basedir}/target/jacoco.exec</sonar.jacoco.reportPaths>
 		<skipTests>false</skipTests>
+		
+		<!-- ========== CORRECTIONS VULNÉRABILITÉS ========== -->
+		<snakeyaml.version>2.2</snakeyaml.version>
+		<tomcat.version>9.0.98</tomcat.version>
+		<spring-framework.version>5.3.39</spring-framework.version>
 	</properties>
 
 	<dependencies>
@@ -92,6 +97,13 @@
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
+		</dependency>
+
+		<!-- ========== CORRECTION snakeyaml (CVE-2022-1471) ========== -->
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+			<version>${snakeyaml.version}</version>
 		</dependency>
 	</dependencies>
 
@@ -165,16 +177,11 @@
 				<artifactId>dependency-check-maven</artifactId>
 				<version>12.1.0</version>
 				<configuration>
-       				 <format>HTML</format>
-
-      				  <outputDirectory>
-           					 ${project.basedir}/target/owasp-reports
-       				 </outputDirectory>
-
-        			<failBuildOnCVSS>11</failBuildOnCVSS>
-
-        			<ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled>
-   				 </configuration>
+					<format>HTML</format>
+					<outputDirectory>${project.basedir}/target/owasp-reports</outputDirectory>
+					<failBuildOnCVSS>11</failBuildOnCVSS>
+					<ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled>
+				</configuration>
 				<executions>
 					<execution>
 						<goals>

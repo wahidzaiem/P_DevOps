@@ -14,7 +14,6 @@ pipeline {
             }
         }
         
-        // ========== ALLER DANS LE DOSSIER APP ==========
         stage('Build') {
             steps {
                 echo 'Compilation du projet...'
@@ -61,27 +60,22 @@ pipeline {
             }
         }
         
-        // ========== OWASP - GÉNÉRATION RAPPORT SEULEMENT ==========
         stage('OWASP Dependency Check') {
             steps {
-                echo 'Analyse des vulnérabilités (génération du rapport seulement)...'
+                echo 'Analyse des vulnérabilités...'
                 dir('app') {
-                    // Désactivation OSS Index et seuil à 11 pour ne jamais échouer
-                                sh '''
-                                mvn org.owasp:dependency-check-maven:12.1.0:check \
-                                -DossindexAnalyzerEnabled=false \
-                                -DfailBuildOnCVSS=11 \
-                                -Dformat=HTML \
-                                -DoutputDirectory=target/owasp-reports
-                                '''                }
+                    sh 'mvn org.owasp:dependency-check-maven:12.1.0:check -DskipOssIndex=true -DfailBuildOnCVSS=11 -Dformat=HTML -DoutputDirectory=target/owasp-reports'
+                }
             }
             post {
                 always {
-                    // Archiver le rapport HTML même en cas d'erreur
                     publishHTML([
                         reportDir: 'app/target/owasp-reports',
                         reportFiles: 'dependency-check-report.html',
-                        reportName: 'OWASP Dependency Check Report'
+                        reportName: 'OWASP Dependency Check Report',
+                        allowMissing: true,
+                        keepAll: true,
+                        alwaysLinkToLastBuild: true
                     ])
                     archiveArtifacts artifacts: 'app/target/owasp-reports/*.html', allowEmptyArchive: true
                 }
